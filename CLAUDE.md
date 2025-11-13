@@ -140,6 +140,10 @@ CLAUDE_API_KEY=sk-ant-api03-...
 - **Security**: Never commit `.env` to version control
 - API key is loaded server-side only (not exposed to browser)
 - If key is missing/invalid, server exits with error message
+- **IMPORTANT**: Format must be exact (no `export`, no quotes, no spaces around `=`)
+  - ✓ Correct: `CLAUDE_API_KEY=sk-ant-api03-...`
+  - ✗ Wrong: `export CLAUDE_API_KEY='sk-ant-api03-...'`
+  - ✗ Wrong: `CLAUDE_API_KEY = sk-ant-api03-...`
 
 ### UI Configuration Options
 - Question count: 1-50 (slider) - target number of questions
@@ -147,6 +151,11 @@ CLAUDE_API_KEY=sk-ant-api03-...
   - Buttons highlight when active (dark background with shadow)
   - Click to toggle on/off
   - At least one question type must be selected
+  - **Default State**: Single Choice, Multiple Select, and True/False are active by default
+  - **Randomized Button**: Inactive by default (must be explicitly selected)
+    - When ONLY "Randomized" is selected: generates mix of all question types
+    - When specific types are selected: "Randomized" is ignored, specific types take precedence
+    - This prevents accidental mixing when user wants specific question types only
 - **Batch Generation**: Questions generated in batches of 10
   - Click "Generate Quiz" once
   - System automatically generates in batches (10 per API call)
@@ -161,6 +170,29 @@ CLAUDE_API_KEY=sk-ant-api03-...
   - Animated slide-in for new questions
 
 ## Common Pitfalls
+
+### Question Type Selection Not Respected
+- **Symptom**: Selecting only "Single Choice" generates all question types
+- **Cause**: "Randomized" button was active, which overrides specific type selections
+- **Fix**:
+  - Ensure "Randomized" button is NOT highlighted/active if you want specific types only
+  - Click "Randomized" to deactivate it if it's highlighted
+  - The `getTypesDescription()` function now prioritizes specific types over "Randomized"
+- **Resolution**: Fixed in commit 9535b30 (Nov 2025)
+  - Randomized button now inactive by default
+  - Specific type selections take precedence over Randomized
+
+### .env File Format Issues
+- **Symptom**: "API key not configured" or 404 errors on `/api/generate`
+- **Cause**: Incorrect `.env` file format with `export`, quotes, or extra spaces
+- **Fix**: Ensure `.env` file format is exact:
+  ```
+  CLAUDE_API_KEY=sk-ant-api03-...
+  ```
+  - No `export` keyword
+  - No quotes around the value
+  - No spaces around the `=` sign
+- **After fixing**: Restart the Flask server (`python3 server.py`)
 
 ### CORS Issues
 - **Symptom**: "Failed to fetch" errors in browser console
