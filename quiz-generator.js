@@ -128,10 +128,22 @@ Do not include any text before or after the JSON array. Only return valid JSON.`
             'randomized': 'Randomized: Mix of all question types'
         };
 
+        // Filter out specific types (non-randomized)
+        const specificTypes = questionTypes.filter(type => type !== 'randomized');
+
+        // If specific types are selected, use only those (ignore randomized)
+        if (specificTypes.length > 0) {
+            return specificTypes
+                .map(type => descriptions[type] || type)
+                .join('\n');
+        }
+
+        // If ONLY randomized is selected, generate mix of all types
         if (questionTypes.includes('randomized')) {
             return 'Mix of all question types (single-choice, multiple-select, true-false)';
         }
 
+        // Fallback (shouldn't reach here normally)
         return questionTypes
             .map(type => descriptions[type] || type)
             .join('\n');
