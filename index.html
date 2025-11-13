@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Generator - AI-Powered Quiz Creation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Quiz Generator</h1>
+            <p class="subtitle">Upload your course content and generate interactive quizzes</p>
+        </header>
+
+        <main>
+            <!-- Step 1: Upload File -->
+            <section class="upload-section">
+                <h2>Step 1: Upload Course Content</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">FILE</div>
+                    <p>Drag & drop your <strong>.xlf</strong> file here</p>
+                    <p class="upload-or">or</p>
+                    <label for="fileInput" class="btn-upload" tabindex="0" role="button">
+                        Browse Files
+                    </label>
+                    <input type="file" id="fileInput" accept=".xlf" style="display: none;" aria-label="Upload XLF file">
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <p><strong>File:</strong> <span id="fileName"></span></p>
+                    <button type="button" class="btn-secondary" onclick="resetUpload()">Upload Different File</button>
+                </div>
+            </section>
+
+            <!-- Step 2: Configure Quiz -->
+            <section class="config-section" id="configSection" style="display: none;">
+                <h2>Step 2: Configure Quiz</h2>
+
+                <div class="config-group">
+                    <label for="questionCount">Number of Questions: <span id="questionCountValue">10</span></label>
+                    <input type="range" id="questionCount" min="1" max="50" value="10" class="slider">
+                    <div class="range-labels">
+                        <span>1</span>
+                        <span>50</span>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label>Question Types to Include:</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-button active" data-type="single-choice">
+                            Single Choice
+                        </button>
+                        <button type="button" class="toggle-button active" data-type="multiple-select">
+                            Multiple Select
+                        </button>
+                        <button type="button" class="toggle-button active" data-type="true-false">
+                            True/False
+                        </button>
+                        <button type="button" class="toggle-button active" data-type="randomized">
+                            Randomized
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-primary" id="generateBtn" onclick="generateQuiz()">
+                    Generate Quiz
+                </button>
+            </section>
+
+            <!-- Step 3: Loading / Results -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <p>Generating your quiz with AI...</p>
+                    <p class="loading-subtext" id="progressText">Preparing to generate questions...</p>
+                </div>
+
+                <div class="success" id="successMessage" style="display: none;">
+                    <div class="success-icon">✓</div>
+                    <h2>Quiz Generated Successfully!</h2>
+                    <p><span id="questionCountDisplay">0</span> questions generated</p>
+
+                    <!-- Question Preview Section -->
+                    <div class="preview-section" id="previewSection">
+                        <h3>Question Preview</h3>
+                        <div id="questionsList" class="questions-list"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn-primary" id="downloadBtn">
+                            Download Quiz HTML
+                        </button>
+                        <button type="button" class="btn-secondary" id="editBtn">
+                            Edit Questions
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="resetAll()">
+                            Generate Another Quiz
+                        </button>
+                    </div>
+                </div>
+
+                <div class="error" id="errorMessage" style="display: none;">
+                    <div class="error-icon">✕</div>
+                    <h2>Generation Failed</h2>
+                    <p id="errorText"></p>
+                    <button type="button" class="btn-secondary" onclick="hideError()">
+                        Try Again
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by Claude AI (Sonnet 4.5)</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="xlf-parser.js"></script>
+    <script src="quiz-generator.js"></script>
+    <script src="quiz-renderer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
