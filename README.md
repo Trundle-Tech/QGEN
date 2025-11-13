@@ -136,6 +136,57 @@ QGen/
 - AI distributes questions across all types
 - Balanced mix for variety
 
+## Deploying to Netlify
+
+This application can be deployed to Netlify for free hosting with serverless functions.
+
+### 1. Deploy to Netlify
+
+**Option A: Deploy from GitHub (Recommended)**
+1. Push your code to GitHub (already done!)
+2. Go to [Netlify](https://app.netlify.com/)
+3. Click "Add new site" → "Import an existing project"
+4. Connect to GitHub and select the `Trundle-Tech/QGEN` repository
+5. Build settings are auto-configured from `netlify.toml`
+6. Click "Deploy site"
+
+**Option B: Manual Deploy**
+1. Install Netlify CLI: `npm install -g netlify-cli`
+2. Run: `netlify deploy --prod`
+
+### 2. Configure Environment Variable
+
+After deployment, you must add your API key as an environment variable:
+
+1. In Netlify dashboard, go to **Site settings** → **Environment variables**
+2. Click **Add a variable**
+3. Set:
+   - **Key**: `CLAUDE_API_KEY`
+   - **Value**: Your Claude API key (e.g., `sk-ant-api03-...`)
+4. Click **Save**
+5. **Important**: Redeploy the site for the variable to take effect
+   - Go to **Deploys** → Click **Trigger deploy** → **Deploy site**
+
+### 3. How It Works
+
+- Netlify serves the static files (HTML, CSS, JS)
+- API requests to `/api/generate` are redirected to a Netlify Function
+- The serverless function (in `netlify/functions/generate.js`) proxies requests to Claude API
+- Your API key is securely stored as an environment variable and never exposed to the browser
+
+### File Structure for Netlify
+
+```
+QGen/
+├── netlify/
+│   └── functions/
+│       └── generate.js    # Serverless function (replaces Flask)
+├── netlify.toml           # Netlify configuration
+├── index.html             # Static files served by Netlify
+├── *.js, *.css            # ...
+└── .env                   # Local development only (not deployed)
+```
+
 ## Troubleshooting
 
 ### "Failed to load API key"
