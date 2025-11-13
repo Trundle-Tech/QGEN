@@ -131,11 +131,11 @@ async function generateQuiz() {
         // Get content as text
         const content = parser.getAllContentAsText();
 
-        // Generate questions in batches of 5 (smaller batches to avoid Netlify timeout)
+        // Generate questions one at a time to avoid Netlify 10s timeout
         generator = new QuizGenerator();
         generatedQuestions = [];
 
-        const batchSize = 5;
+        const batchSize = 1;
         const numBatches = Math.ceil(questionCount / batchSize);
 
         for (let batch = 0; batch < numBatches; batch++) {

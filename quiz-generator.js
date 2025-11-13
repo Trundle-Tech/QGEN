@@ -38,7 +38,7 @@ class QuizGenerator {
             if (!response.ok) {
                 // Handle timeout errors
                 if (response.status === 504) {
-                    throw new Error('Request timeout. Try generating fewer questions at once (max 10 per batch recommended for Netlify).');
+                    throw new Error('Request timeout. The app generates 1 question at a time, but this request took too long. Try reducing total question count or check your internet connection.');
                 }
 
                 // Try to parse error response

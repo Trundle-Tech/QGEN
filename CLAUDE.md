@@ -156,11 +156,11 @@ CLAUDE_API_KEY=sk-ant-api03-...
     - When ONLY "Randomized" is selected: generates mix of all question types
     - When specific types are selected: "Randomized" is ignored, specific types take precedence
     - This prevents accidental mixing when user wants specific question types only
-- **Batch Generation**: Questions generated in batches of 5
+- **Batch Generation**: Questions generated one at a time
   - Click "Generate Quiz" once
-  - System automatically generates in batches (5 per API call)
-  - Shows real-time progress: "Generating questions 1-5...", "Generated 5 of 30 questions"
-  - Batch size reduced to 5 to avoid Netlify function timeouts (10s limit on free tier)
+  - System automatically generates questions sequentially (1 per API call)
+  - Shows real-time progress: "Generating question 1...", "Generated 5 of 30 questions"
+  - Batch size set to 1 to reliably stay under Netlify's 10s timeout on free tier
   - Questions appear in preview as each batch completes
   - Avoids API token limits and timeouts
 - Question preview panel: Shows accumulated questions
@@ -213,15 +213,15 @@ CLAUDE_API_KEY=sk-ant-api03-...
 ### API Token Limit / 500 Errors
 - **Symptom**: 500 INTERNAL SERVER ERROR when generating many questions (30+), or request timeout after 60 seconds
 - **Cause**: Prompt too large (content + question count + instructions exceed Claude's context window)
-- **Solution Implemented**: Batch generation (5 questions per API call)
+- **Solution Implemented**: Sequential generation (1 question per API call)
 - **Why It Works**:
-  - Each batch stays well under token limits
-  - Course content repeated in each call, but only 5 questions requested
-  - Much faster than one-at-a-time (30 questions = 6 API calls, not 30)
+  - Each API call stays well under token limits
+  - Each request completes quickly (typically 2-5 seconds)
+  - Reliable completion even on Netlify free tier (10s timeout)
 - **Implementation**:
-  - `generateQuiz()` loops through batches of 5
-  - Each batch: generate → accumulate → update progress → update preview
-  - Handles remainders automatically (e.g., 27 questions = 5+5+5+5+5+2)
+  - `generateQuiz()` loops through questions one at a time
+  - Each iteration: generate → accumulate → update progress → update preview
+  - For 30 questions: 30 sequential API calls, ~60-150 seconds total
 
 ### Netlify 504 Timeout Errors
 - **Symptom**: "Request timeout" or 504 errors on Netlify deployment
@@ -230,14 +230,15 @@ CLAUDE_API_KEY=sk-ant-api03-...
   - Pro tier: 26 seconds maximum
   - Background functions (Pro only): 15 minutes
 - **Solution**:
-  - Batch size reduced to 5 questions per request
-  - Each batch should complete in 5-8 seconds
-  - For large quizzes (30+ questions), multiple batches are generated sequentially
-- **If still timing out**:
-  - Reduce question count
-  - Upgrade to Netlify Pro for 26s timeout
-  - Consider using background functions (requires Pro + code changes)
-- **Local development**: No timeout issues with Flask server (60s timeout)
+  - Questions generated one at a time (1 question per API call)
+  - Each request typically completes in 2-5 seconds
+  - Well under the 10-second free tier limit
+  - Large quizzes (30+ questions) take longer total time but each individual request succeeds
+- **Performance**:
+  - 10 questions: ~20-50 seconds total
+  - 30 questions: ~60-150 seconds total
+  - Each question appears in preview as it completes
+- **Local development**: No timeout issues with Flask server (60s timeout per request)
 
 ## Output Quiz Behavior
 

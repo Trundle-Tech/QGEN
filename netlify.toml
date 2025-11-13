@@ -10,8 +10,8 @@
   # Free tier: max 10 seconds
   # Pro tier: max 26 seconds
   # Background functions (Pro): max 900 seconds (15 min)
-  # Note: If you get 504 timeouts, upgrade to Pro
-  # The app uses batches of 5 questions to stay under the 10s free tier limit
+  # The app generates 1 question per API call to stay under the 10s free tier limit
+  # Each question typically takes 2-5 seconds to generate
 
 # Redirect API requests to Netlify Function
 [[redirects]]
