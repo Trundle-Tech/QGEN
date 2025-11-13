@@ -26,41 +26,75 @@ exports.handler = async (event, context) => {
         // Parse request body
         const requestData = JSON.parse(event.body);
 
-        // Make request to Claude API
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': CLAUDE_API_KEY,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify(requestData)
-        });
+        console.log('Generating quiz questions...');
+        console.log('Request model:', requestData.model);
+        console.log('Max tokens:', requestData.max_tokens);
 
-        const data = await response.json();
+        // Make request to Claude API with timeout
+        // Note: Netlify free tier has 10s function timeout
+        // Pro tier has 26s timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
 
-        // Return Claude's response
-        if (response.ok) {
-            return {
-                statusCode: 200,
+        try {
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'x-api-key': CLAUDE_API_KEY,
+                    'anthropic-version': '2023-06-01'
                 },
-                body: JSON.stringify(data)
-            };
-        } else {
-            console.error('Claude API Error:', data);
-            return {
-                statusCode: response.status,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({
-                    error: { message: data.error?.message || 'API request failed' }
-                })
-            };
+                body: JSON.stringify(requestData),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            const data = await response.json();
+
+            // Return Claude's response
+            if (response.ok) {
+                console.log('Quiz generation successful');
+                return {
+                    statusCode: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    body: JSON.stringify(data)
+                };
+            } else {
+                console.error('Claude API Error:', data);
+                return {
+                    statusCode: response.status,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    body: JSON.stringify({
+                        error: { message: data.error?.message || 'API request failed' }
+                    })
+                };
+            }
+
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+
+            // Handle timeout specifically
+            if (fetchError.name === 'AbortError') {
+                console.error('Request timeout - Claude API took too long');
+                return {
+                    statusCode: 504,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    body: JSON.stringify({
+                        error: { message: 'Request timeout. Try generating fewer questions or upgrade to Netlify Pro for longer timeouts.' }
+                    })
+                };
+            }
+            throw fetchError; // Re-throw other errors to outer catch
         }
 
     } catch (error) {

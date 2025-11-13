@@ -36,10 +36,24 @@ class QuizGenerator {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+                // Handle timeout errors
+                if (response.status === 504) {
+                    throw new Error('Request timeout. Try generating fewer questions at once (max 10 per batch recommended for Netlify).');
+                }
+
+                // Try to parse error response
+                let errorMessage = response.statusText;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error?.message || errorMessage;
+                } catch (e) {
+                    // If error response isn't JSON, use statusText
+                }
+
+                throw new Error(`API Error (${response.status}): ${errorMessage}`);
             }
 
+            // Parse successful response
             const data = await response.json();
             const responseText = data.content[0].text;
 

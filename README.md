@@ -173,6 +173,19 @@ After deployment, you must add your API key as an environment variable:
 - API requests to `/api/generate` are redirected to a Netlify Function
 - The serverless function (in `netlify/functions/generate.js`) proxies requests to Claude API
 - Your API key is securely stored as an environment variable and never exposed to the browser
+- Questions are generated in batches of 5 to stay within Netlify's 10-second function timeout (free tier)
+
+### 4. Important: Netlify Timeout Limits
+
+Netlify Functions have strict timeout limits:
+- **Free tier**: 10 seconds maximum
+- **Pro tier**: 26 seconds maximum
+
+The application uses **batch generation** (5 questions per batch) to stay within these limits. For example:
+- 10 questions = 2 batches (takes ~10-15 seconds total)
+- 30 questions = 6 batches (takes ~30-45 seconds total)
+
+Each batch is generated sequentially, so you'll see progress updates like "Generating questions 1-5...", "Generated 10 of 30 questions", etc.
 
 ### File Structure for Netlify
 

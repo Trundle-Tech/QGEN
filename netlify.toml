@@ -5,6 +5,14 @@
   publish = "."
   functions = "netlify/functions"
 
+[functions]
+  # Function timeout in seconds
+  # Free tier: max 10 seconds
+  # Pro tier: max 26 seconds
+  # Background functions (Pro): max 900 seconds (15 min)
+  # Note: If you get 504 timeouts, upgrade to Pro
+  # The app uses batches of 5 questions to stay under the 10s free tier limit
+
 # Redirect API requests to Netlify Function
 [[redirects]]
   from = "/api/generate"
