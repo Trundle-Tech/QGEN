@@ -6,7 +6,7 @@ class QuizGenerator {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.apiEndpoint = '/api/generate';
-        this.model = 'claude-sonnet-4-5-20250929';
+        this.model = 'claude-haiku-3-5';
     }
 
     /**
