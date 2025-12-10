@@ -3,156 +3,465 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSHA Focus Four: Adaptive Assessment</title>
+    <title>OSHA Focus Four - Adaptive Quiz</title>
     <style>
         :root {
             --primary: #d32f2f;
             --secondary: #333;
-            --light: #f9f9f9;
-            --border: #ddd;
-            --success: #2e7d32;
+            --light: #f4f4f4;
+            --correct: #2e7d32;
+            --wrong: #c62828;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background: #eef2f5; color: #333; }
+        .container { max-width: 800px; margin: 20px auto; }
         
-        /* Image Debugging Styles */
-        .question-image-container { text-align: center; margin-bottom: 20px; background: #eee; padding: 10px; border-radius: 8px; min-height: 100px; }
-        .question-image { max-width: 100%; max-height: 350px; border-radius: 4px; display: inline-block; }
-        
-        /* If image is broken, these styles apply to the alt text */
-        .question-image[alt] { font-weight: bold; color: red; }
-
-        .option-btn { background: var(--light); border: 2px solid var(--border); padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; }
-        .option-btn:hover { border-color: var(--primary); }
-        .option-btn.selected { border-color: var(--primary); background: #ffebee; font-weight: bold; }
-        .btn { background: var(--primary); color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-top: 10px; width: 100%; }
-        .btn:disabled { background: #ccc; }
+        /* State Views */
         .view { display: none; }
-        .view.active { display: block; }
+        .active { display: block; animation: fadeIn 0.4s ease-in-out; }
+
+        /* Card Styles */
+        .card { 
+            border: 1px solid #ddd; 
+            border-radius: 12px; 
+            padding: 30px; 
+            margin-bottom: 20px; 
+            background: #fff; 
+            box-shadow: var(--shadow); 
+        }
+        h1 { text-align: center; color: var(--secondary); margin-bottom: 20px; }
+        h2 { color: var(--primary); margin-top: 0; }
+
+        /* Quiz Styles */
+        .question-meta { font-size: 0.85em; text-transform: uppercase; color: #666; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
+        
+        /* Explicitly styling the question text to ensure visibility */
+        .question-text { 
+            display: block;
+            font-size: 1.4em; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            color: #111; 
+            line-height: 1.4;
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+        }
+        
+        /* Image container */
+        .question-media { 
+            text-align: center; 
+            margin: 20px 0; 
+            background: #fff; 
+            padding: 5px; 
+            border-radius: 8px; 
+        }
+        .question-media img { 
+            max-width: 100%; 
+            max-height: 400px; 
+            border-radius: 4px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+
+        /* Options */
+        .options { list-style: none; padding: 0; display: grid; gap: 10px; }
+        .option { 
+            background: #fff; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            border: 2px solid #e0e0e0; 
+            font-size: 1.05em;
+        }
+        .option:hover { border-color: var(--primary); background: #fff5f5; }
+        .option.selected { border-color: var(--primary); background: #ffebee; color: var(--primary); font-weight: bold; }
+
+        /* Review Styles */
+        .review-item { border: 1px solid #eee; border-left: 5px solid var(--primary); border-radius: 6px; padding: 20px; margin-bottom: 20px; background: #fff; }
+        .review-context { background: #fafafa; padding: 15px; border-radius: 6px; margin-top: 15px; font-size: 0.95em; }
+        .review-context img { max-width: 100%; height: auto; margin-top: 10px; border-radius: 4px; border: 1px solid #ddd; }
+        
+        /* Buttons */
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 16px; 
+            background: var(--primary); 
+            color: #fff; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 1.1em; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-align: center; 
+            transition: background 0.2s; 
+            margin-top: 20px;
+        }
+        .btn:hover { background: #b71c1c; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Progress Bar */
+        .progress-container { height: 8px; background: #e0e0e0; border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <h1>OSHA Focus Four: Adaptive Assessment</h1>
+
     <div id="view-intro" class="view active">
-        <h1>OSHA Focus Four Hazards</h1>
-        <p>Adaptive Assessment: You will be tested on Fall, Struck-By, Caught-In, and Electrical hazards.</p>
-        <button class="btn" onclick="app.startQuiz()">Start Quiz</button>
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 3em; margin-bottom: 10px;">🛡️</div>
+            <h2>Safety Knowledge Check</h2>
+            <p>This adaptive quiz tests your ability to identify the "Focus Four" hazards.</p>
+            <ul style="text-align: left; margin: 20px auto; max-width: 400px; line-height: 1.8;">
+                <li>📸 <strong>Visuals:</strong> Review images of real worksite scenarios.</li>
+                <li>🔄 <strong>Adaptive:</strong> If you miss a question, you will review the training material and retake it.</li>
+                <li>✅ <strong>Mastery:</strong> The quiz continues until you achieve 100%.</li>
+            </ul>
+            <button class="btn" onclick="app.startQuiz()">Start Quiz</button>
+        </div>
     </div>
 
     <div id="view-quiz" class="view">
-        <h3 id="progress-text">Question 1</h3>
-        <div id="question-container"></div>
-        <button class="btn" id="submit-btn" onclick="app.submitAnswer()" disabled>Submit Answer</button>
+        <div class="card">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div id="quiz-container">
+                </div>
+            <button class="btn" id="submit-btn" onclick="app.submitAnswer()" disabled>Submit Answer</button>
+        </div>
     </div>
 
     <div id="view-review" class="view">
-        <h2>Review Required</h2>
-        <p id="review-subtext"></p>
-        <div id="review-list"></div>
+        <div class="card">
+            <h2 id="score-header"></h2>
+            <p>You missed the items below. Please review the lesson context and images before retaking them.</p>
+        </div>
+        <div id="review-list">
+            </div>
         <button class="btn" onclick="app.retakeMissed()">Retake Missed Questions</button>
     </div>
 
     <div id="view-victory" class="view">
-        <h2 style="color: var(--success); text-align: center;">🏆 Course Complete!</h2>
-        <p style="text-align: center;">You have mastered all 16 hazard scenarios.</p>
-        <button class="btn" onclick="location.reload()">Restart</button>
+        <div class="card" style="text-align: center; padding: 50px;">
+            <div style="font-size: 5em;">🏆</div>
+            <h2 style="color: var(--correct); font-size: 2em; margin: 20px 0;">Certified Safe!</h2>
+            <p>You have successfully identified all Focus Four hazards and achieved 100% mastery.</p>
+            <br>
+            <button class="btn" onclick="location.reload()">Restart Course</button>
+        </div>
     </div>
 </div>
 
 <script>
+/**
+ * DATA STORE
+ * Complete dataset with Images (img) and Text (question)
+ */
 const quizData = [
-  { id: 1, topic: "Falls", question: "At what height is fall protection generally required in construction?", img: "138070.jpg", options: ["2 feet", "4 feet", "6 feet", "8 feet"], correct: 2, review: "Falls of 6 feet or more require protection." },
-  { id: 2, topic: "Fall Hazards", question: "Identify the hazard: Is this worker safe?", img: "534220.jpg", options: ["Yes, they look safe", "No, this is a fall hazard"], correct: 1, review: "Unprotected edge > 6ft." },
-  { id: 3, topic: "Fall Hazards", question: "Does this ladder setup present a fall hazard?", img: "9512003.jpg", options: ["Yes", "No"], correct: 0, review: "Unsafe ladder use causes falls." },
-  { id: 4, topic: "Fall Hazards", question: "Is this scaffold constructed correctly?", img: "8829869.jpg", options: ["Yes", "No, it is a fall hazard"], correct: 1, review: "Improper planking/rails on scaffold." },
-  { id: 5, topic: "Fall Hazards", question: "Is fall protection required for this roofing work?", img: "2317640.jpg", options: ["Yes", "No"], correct: 0, review: "Roofing work requires fall protection." },
-  { id: 6, topic: "Struck-By", question: "What type of hazard does this suspended load represent?", img: "18576025.jpg", options: ["Caught-In", "Struck-By", "Electrocution"], correct: 1, review: "Struck-by falling/swinging load." },
-  { id: 7, topic: "Struck-By", question: "Is there a struck-by hazard in this traffic zone?", img: "8829875.jpg", options: ["Yes", "No"], correct: 0, review: "Vehicle struck-by hazard." },
-  { id: 8, topic: "Struck-By", question: "Does this image depict a flying object hazard?", img: "34025501.jpg", options: ["Yes", "No"], correct: 0, review: "Flying debris from tools." },
-  { id: 9, topic: "Caught-In/Between", question: "Is this trench safe to enter?", img: "8885116.jpg", options: ["Yes", "No, it is a caught-in hazard"], correct: 1, review: "Trench cave-in hazard." },
-  { id: 10, topic: "Caught-In/Between", question: "What is the primary hazard of these unguarded gears?", img: "8817847.jpg", options: ["Struck-By", "Caught-In", "Fall"], correct: 1, review: "Caught-in moving gears." },
-  { id: 11, topic: "Caught-In/Between", question: "What is the risk here with the heavy equipment near the wall?", img: "5668922.jpg", options: ["Pinned/Caught-Between", "Electrocution", "Fall"], correct: 0, review: "Pinned between equipment and wall." },
-  { id: 12, topic: "Caught-In/Between", question: "Is this rotating part a hazard?", img: "8853525.jpg", options: ["Yes", "No"], correct: 0, review: "Caught-in rotating shaft." },
-  { id: 13, topic: "Electrocution", question: "What is the major hazard shown here?", img: "0130754.jpg", options: ["Fall", "Electrocution", "Caught-In"], correct: 1, review: "Overhead power lines." },
-  { id: 14, topic: "Electrocution", question: "Is this cord safe to use?", img: "8005368.jpg", options: ["Yes", "No"], correct: 1, review: "Damaged cord insulation." },
-  { id: 15, topic: "Electrocution", question: "Is this open panel box a hazard?", img: "7081425.jpg", options: ["Yes", "No"], correct: 0, review: "Exposed live parts." },
-  { id: 16, topic: "Electrocution", question: "How does the wet condition affect the electrical hazard here?", img: "7397169.jpg", options: ["Reduces risk", "Increases risk"], correct: 1, review: "Wet conditions increase shock risk." }
+  {
+    "id": "q1",
+    "lesson": "Falls",
+    "question": "From what heights do vertical drops in the construction industry become especially dangerous?",
+    "img": "138070.jpg", 
+    "options": ["2 feet or more", "4 feet or more", "6 feet or more", "8 feet or more"],
+    "correct": 2,
+    "reviewText": "Within the construction industry, vertical drops over <strong>6 feet</strong> are especially dangerous. Workers should always use fall protection when exposed to heights over 6 feet."
+  },
+  {
+    "id": "q2",
+    "lesson": "Identifying Fall Hazards",
+    "question": "Is this a fall hazard? (Worker near edge)",
+    "img": "534220.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Unprotected Sides and Edges:</strong> One of the major fall hazards is working near unprotected sides, edges, openings, or floor holes. If a worker can fall 6 feet or more, protection is required."
+  },
+  {
+    "id": "q3",
+    "lesson": "Identifying Fall Hazards",
+    "question": "Is this a fall hazard? (Ladder Use)",
+    "img": "9512003.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Unsafe Portable Ladder Use:</strong> Falls often occur when ladders move, slip, or when workers overreach or lose balance. Defective equipment or improper selection also contributes to hazards."
+  },
+  {
+    "id": "q4",
+    "lesson": "Identifying Fall Hazards",
+    "question": "Is this a fall hazard? (Scaffolding)",
+    "img": "8829869.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Improper Scaffold Construction:</strong> Scaffolds must have proper planking, stable footing, and guardrails. Weak supports or lack of access are major hazards."
+  },
+  {
+    "id": "q5",
+    "lesson": "Identifying Fall Hazards",
+    "question": "Is this a fall hazard? (Roofing)",
+    "img": "2317640.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Roofing Work:</strong> Work on roofs carries inherent fall risks due to slope and height. Proper fall arrest systems or guardrails must be used."
+  },
+  {
+    "id": "q6",
+    "lesson": "Struck-By Hazards",
+    "question": "Is this a struck-by hazard? (Suspended Load)",
+    "img": "18576025.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Flying, Falling, Swinging, or Rolling Objects:</strong> 'Struck-by' injuries are produced by forcible contact or impact between the injured person and an object or piece of equipment."
+  },
+  {
+    "id": "q7",
+    "lesson": "Struck-By Hazards",
+    "question": "Is this a struck-by hazard? (Vehicle)",
+    "img": "8829875.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Motor Vehicles:</strong> Workers are at risk of being struck by trucks, cars, or heavy equipment. This includes being run over or struck by swinging backhoes."
+  },
+   {
+    "id": "q8",
+    "lesson": "Struck-By Hazards",
+    "question": "Is this a struck-by hazard? (Debris)",
+    "img": "34025501.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Flying Objects:</strong> Objects can be propelled through space by tools or machinery. Powder-actuated tools are particularly dangerous as they drive fasteners with explosive force."
+  },
+    {
+    "id": "q9",
+    "lesson": "Caught-In/Between Hazards",
+    "question": "Is this a caught hazard? (Trench)",
+    "img": "8885116.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Cave-Ins:</strong> Unprotected trenches and excavations pose a high risk of cave-ins, which can crush or suffocate workers. This is a classic 'Caught-In' hazard."
+  },
+  {
+    "id": "q10",
+    "lesson": "Caught-In/Between Hazards",
+    "question": "Is this a caught hazard? (Machinery)",
+    "img": "8817847.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Unguarded Machinery:</strong> Injuries result from a person being squeezed, pinched, or compressed between two or more objects. Unguarded moving parts like gears and belts are major culprits."
+  },
+  {
+    "id": "q11",
+    "lesson": "Caught-In/Between Hazards",
+    "question": "Is this a caught hazard? (Heavy Equipment)",
+    "img": "5668922.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Pinned Between:</strong> Workers can be pinned between equipment and a solid object (like a wall or another piece of equipment). Never place yourself between a moving hazard and a stationary object."
+  },
+  {
+    "id": "q12",
+    "lesson": "Caught-In/Between Hazards",
+    "question": "Is this a caught hazard? (Rotating Parts)",
+    "img": "8853525.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Rotating Parts:</strong> Clothing, jewelry, or hair can get caught in rotating machinery, pulling the worker in. Ensure all guards are in place."
+  },
+  {
+    "id": "q13",
+    "lesson": "Electrocution Hazards",
+    "question": "Is this an electrocution hazard? (Power Lines)",
+    "img": "0130754.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Overhead Power Lines:</strong> Contact with overhead power lines is a leading cause of electrocution. Equipment (cranes, ladders) touching lines can be fatal."
+  },
+  {
+    "id": "q14",
+    "lesson": "Electrocution Hazards",
+    "question": "Is this an electrocution hazard? (Damaged Cord)",
+    "img": "8005368.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Damaged Cords:</strong> Extension and flexible cords with exposed wires or damaged insulation create shock and burn hazards. Always inspect cords before use."
+  },
+  {
+    "id": "q15",
+    "lesson": "Electrocution Hazards",
+    "question": "Is this an electrocution hazard? (Panel Box)",
+    "img": "7081425.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Energized Sources:</strong> Contact with energized sources like open panel boxes or live wires leads to electrical shock, burns, and electrocution. Only qualified personnel should work on live equipment."
+  },
+  {
+    "id": "q16",
+    "lesson": "Electrocution Hazards",
+    "question": "Is this an electrocution hazard? (Wet Conditions)",
+    "img": "7397169.jpg",
+    "options": ["Yes", "No"],
+    "correct": 0,
+    "reviewText": "<strong>Wet Conditions:</strong> All electrical hazards are worse in wet or damp conditions. Water conducts electricity, significantly increasing the risk of shock."
+  }
 ];
 
+/**
+ * APP LOGIC
+ */
 const app = {
-    queue: [], missed: [], idx: 0, sel: null,
-    init: function() { this.queue = quizData.map(q => q.id); },
+    // State
+    currentQueue: [],
+    missedIds: [],
+    currentIndex: 0,
+    selectedOption: null,
+
+    // Init
+    init: function() {
+        this.currentQueue = quizData.map(q => q.id);
+        this.showView('view-intro');
+    },
+
+    // Navigation
+    showView: function(viewId) {
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    },
+
     startQuiz: function() {
-        this.idx = 0;
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('view-quiz').classList.add('active');
-        this.loadQ();
+        this.currentIndex = 0;
+        this.missedIds = [];
+        this.renderQuestion();
+        this.showView('view-quiz');
     },
-    loadQ: function() {
-        this.sel = null;
-        document.getElementById('submit-btn').disabled = true;
-        const data = quizData.find(q => q.id === this.queue[this.idx]);
-        document.getElementById('progress-text').innerText = `Question ${this.idx + 1} of ${this.queue.length} (${data.topic})`;
+
+    // Rendering
+    renderQuestion: function() {
+        const qData = this.getQuestionData(this.currentQueue[this.currentIndex]);
+        const container = document.getElementById('quiz-container');
         
+        // Update Progress
+        const percent = ((this.currentIndex) / this.currentQueue.length) * 100;
+        document.getElementById('progress-bar').style.width = percent + '%';
+
         let html = '';
-        // DEBUG: Removed 'display:none' on error. Added red border style for debugging.
-        if(data.img) {
-            html += `<div class="question-image-container">
-                <img src="assets/${data.img}" class="question-image" alt="IMAGE NOT FOUND: assets/${data.img}" 
-                onerror="this.style.border='5px solid red';">
-            </div>`;
-        }
         
-        data.options.forEach((opt, i) => {
-            html += `<div class="option-btn" onclick="app.selOpt(${i}, this)">${opt}</div>`;
+        // 1. Topic Label
+        html += `<div class="question-meta">Topic: ${qData.lesson}</div>`;
+        
+        // 2. Question Text (Explicitly separate to ensure visibility)
+        html += `<div class="question-text">${qData.question}</div>`;
+
+        // 3. Image (Rendered in its own container below text)
+        if (qData.img) {
+            html += `
+            <div class="question-media">
+                <img src="assets/${qData.img}" alt="Question Image" onerror="this.style.display='none'">
+            </div>`;
+        }
+
+        // 4. Options
+        html += `<ul class="options">`;
+        qData.options.forEach((opt, index) => {
+            html += `<li class="option" onclick="app.selectOption(${index}, this)">${opt}</li>`;
         });
-        document.getElementById('question-container').innerHTML = html;
+        html += `</ul>`;
+        
+        container.innerHTML = html;
+        document.getElementById('submit-btn').disabled = true;
+        document.getElementById('submit-btn').style.opacity = 0.5;
+        this.selectedOption = null;
     },
-    selOpt: function(i, el) {
-        this.sel = i;
-        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+
+    getQuestionData: function(id) {
+        return quizData.find(q => q.id === id);
+    },
+
+    selectOption: function(index, el) {
+        this.selectedOption = index;
+        // Visuals
+        document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
-        document.getElementById('submit-btn').disabled = false;
+        // Enable submit
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = false;
+        btn.style.opacity = 1;
     },
+
     submitAnswer: function() {
-        const data = quizData.find(q => q.id === this.queue[this.idx]);
-        if(this.sel !== data.correct) { if(!this.missed.includes(data.id)) this.missed.push(data.id); }
-        this.idx++;
-        if(this.idx < this.queue.length) this.loadQ();
-        else this.finish();
-    },
-    finish: function() {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        if(this.missed.length === 0) {
-            document.getElementById('view-victory').classList.add('active');
+        const qId = this.currentQueue[this.currentIndex];
+        const qData = this.getQuestionData(qId);
+
+        // Logic
+        if (this.selectedOption !== qData.correct) {
+            this.missedIds.push(qId);
+        }
+
+        // Next
+        this.currentIndex++;
+        if (this.currentIndex < this.currentQueue.length) {
+            this.renderQuestion();
         } else {
-            this.showReview();
+            this.finishRound();
         }
     },
-    showReview: function() {
-        const list = document.getElementById('review-list');
-        list.innerHTML = '';
-        document.getElementById('review-subtext').innerText = `You missed ${this.missed.length} questions.`;
-        this.missed.forEach(id => {
-            const data = quizData.find(q => q.id === id);
-            list.innerHTML += `<div style="background:#fff; border:1px solid #ddd; padding:15px; margin-bottom:10px;">
-                <strong>${data.question}</strong><br>
-                <div style="margin:10px 0; background:#eee; padding:5px; text-align:center;">
-                    <img src="assets/${data.img}" style="max-height:150px;" alt="Image: ${data.img}">
-                </div>
-                <p style="color:#d32f2f;">${data.review}</p>
-            </div>`;
-        });
-        document.getElementById('view-review').classList.add('active');
+
+    finishRound: function() {
+        if (this.missedIds.length === 0) {
+            this.showView('view-victory');
+        } else {
+            this.renderReview();
+            this.showView('view-review');
+        }
     },
+
+    // Review Logic
+    renderReview: function() {
+        const list = document.getElementById('review-list');
+        const score = Math.round(((this.currentQueue.length - this.missedIds.length) / this.currentQueue.length) * 100);
+        
+        document.getElementById('score-header').innerText = `You scored ${score}%. Review the ${this.missedIds.length} missed topics:`;
+        
+        list.innerHTML = '';
+
+        this.missedIds.forEach(id => {
+            const qData = this.getQuestionData(id);
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            
+            // Build Review Item
+            let content = `
+                <div style="font-weight:bold; color:#d32f2f; margin-bottom:5px;">Missed Question:</div>
+                <div style="margin-bottom:10px; font-weight:600;">${qData.question}</div>
+                <div class="review-context">
+                    ${qData.reviewText}
+                </div>
+            `;
+            
+            if(qData.img) {
+                content += `<div style="text-align:center; margin-top:10px;"><img src="assets/${qData.img}" style="max-height:200px;"></div>`;
+            }
+
+            div.innerHTML = content;
+            list.appendChild(div);
+        });
+    },
+
     retakeMissed: function() {
-        this.queue = [...this.missed];
-        this.missed = [];
+        // Reset queue to only missed questions
+        this.currentQueue = [...this.missedIds];
         this.startQuiz();
     }
 };
+
+// Start
 app.init();
 </script>
+
 </body>
 </html>
